@@ -1,7 +1,6 @@
 import 'dart:convert';
 
-import 'package:starfish_http/http/socket/socket_resp.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:starfish/http/socket/socket_resp.dart';
 
 class WebSocketInstance {
   WebSocketInstance._();

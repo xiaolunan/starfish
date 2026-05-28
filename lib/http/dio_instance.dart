@@ -1,23 +1,44 @@
 import 'package:dio/dio.dart';
-import 'package:starfish_http/http/interceptor/token_interceptor.dart';
-
 import 'http_method.dart';
 import 'interceptor/print_log_interceptor.dart';
 import 'interceptor/rsp_interceptor.dart';
+import 'interceptor/token_interceptor.dart';
 
+/// Dio 网络请求单例封装
+///
+/// 提供 GET/POST 请求、拦截器链注册、BaseOptions 构建及 baseUrl 切换能力。
+/// 使用前必须调用 [initDio] 完成初始化。
 class DioInstance {
   static DioInstance? _instance;
 
+  /// 私有构造，禁止外部直接实例化
   DioInstance._internal();
 
+  /// 获取单例实例（懒加载）
   static DioInstance instance() {
     return _instance ??= DioInstance._internal();
   }
 
+  /// Dio 核心实例
   Dio _dio = Dio();
+
+  /// 默认超时时间 30 秒
   final _defaultTimeout = const Duration(seconds: 30);
+
+  /// 是否已调用 [initDio]
   var _inited = false;
 
+  /// 初始化 Dio 配置及拦截器链
+  ///
+  /// [baseUrl] 接口基地址
+  /// [method] 默认请求方法，默认 GET
+  /// [connectTimeout] 连接超时，默认 30s
+  /// [receiveTimeout] 接收超时，默认 30s
+  /// [sendTimeout] 发送超时，默认 30s
+  /// [responseType] 响应数据类型，默认 JSON
+  /// [contentType] 请求 Content-Type
+  ///
+  /// 拦截器注册顺序：TokenInterceptor → PrintLogInterceptor → RspInterceptor
   void initDio({
     required String baseUrl,
     String? method = HttpMethod.GET,
@@ -42,7 +63,12 @@ class DioInstance {
     _inited = true;
   }
 
-  ///get请求方式
+  /// GET 请求
+  ///
+  /// [path] 请求路径（相对 baseUrl）
+  /// [param] 查询参数
+  /// [options] 额外请求配置
+  /// [cancelToken] 取消令牌
   Future<Response> get({
     required String path,
     Map<String, dynamic>? param,
@@ -63,7 +89,13 @@ class DioInstance {
         cancelToken: cancelToken);
   }
 
-  ///post请求方式
+  /// POST 请求
+  ///
+  /// [path] 请求路径（相对 baseUrl）
+  /// [data] 请求体数据
+  /// [queryParameters] URL 查询参数
+  /// [options] 额外请求配置
+  /// [cancelToken] 取消令牌
   Future<Response> post(
       {required String path,
       Object? data,
@@ -85,6 +117,9 @@ class DioInstance {
             ));
   }
 
+  /// 构建 [BaseOptions] 配置对象
+  ///
+  /// 参数默认值与 [initDio] 一致
   BaseOptions buildBaseOptions({
     required String baseUrl,
     String? method = HttpMethod.GET,
@@ -104,6 +139,9 @@ class DioInstance {
         contentType: contentType);
   }
 
+  /// 动态切换 baseUrl
+  ///
+  /// 适用于多环境部署场景
   void changeBaseUrl(String baseUrl) {
     _dio.options.baseUrl = baseUrl;
   }
